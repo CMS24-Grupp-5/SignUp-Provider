@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SignUp.Models;
 using SignUp.Services;
+using System.Net.Http;
 
 namespace SignUp.Controllers
 {
@@ -38,10 +39,20 @@ namespace SignUp.Controllers
                         LastName = result.LastName,
                         PhoneNumber = result.PhoneNumber
                     };
+                    var loginData = new LoginDataForm
+                    {
+                        Email = form.Email,
+                        Password = form.Password
+                    };
+
+                 
+
 
                     using var http = new HttpClient();
                     var response = await http.PostAsJsonAsync("https://localhost:7147/api/profiles/create", userProfile);
 
+                    using var httpLogin = new HttpClient();
+                    var loginRespons = await httpLogin.PostAsJsonAsync("", loginData);
                     return Ok("User registered successfully.");
                 }
                 else
@@ -50,7 +61,7 @@ namespace SignUp.Controllers
                 }
             }
 
-            return BadRequest("First name or last name is required.");
+            return BadRequest("Something went wrong.");
         }
     }
 }
