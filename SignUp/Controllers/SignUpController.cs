@@ -22,46 +22,35 @@ namespace SignUp.Controllers
         public async Task<IActionResult> SignUp(FormData form)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
-            if (!string.IsNullOrEmpty(form.FirstName) || !string.IsNullOrEmpty(form.LastName))
+            var result = await _signUpService.RegisterUserAsync(form);
+
+            if (result == null)
+                return BadRequest("Registration failed.");
+
+            var userProfile = new ProfileRegistrationForm
             {
-                var result = await _signUpService.RegisterUserAsync(form);
+                UserId = result.UserId,
+                FirstName = result.FirstName,
+                LastName = result.LastName,
+                PhoneNumber = result.PhoneNumber
+            };
 
-                if (result != null) 
-                {
-                    var userProfile = new ProfileRegistrationForm
-                    {
-                        UserId = result.UserId,
-                        FirstName = result.FirstName,
-                        LastName = result.LastName,
-                        PhoneNumber = result.PhoneNumber
-                    };
-                    var loginData = new LoginDataForm
-                    {
-                        Email = form.Email,
-                        Password = form.Password
-                    };
+            var response = await new HttpClient().PostAsJsonAsync("https://localhost:7147/api/profiles/create", userProfile);
 
-                 
+            if (!response.IsSuccessStatusCode)
+                return StatusCode(500, "User created but profile creation failed.");
 
+            return Ok(new { message = "User registered and profile created." });
 
-                    using var http = new HttpClient();
-                    var response = await http.PostAsJsonAsync("https://localhost:7147/api/profiles/create", userProfile);
-
-                    using var httpLogin = new HttpClient();
-                    var loginRespons = await httpLogin.PostAsJsonAsync("", loginData);
-                    return Ok("User registered successfully.");
-                }
-                else
-                {
-                    return BadRequest("Registration failed."); 
-                }
-            }
-
-            return BadRequest("Something went wrong.");
         }
+
     }
 }
+
+
+//// här är din applicationUrl
+//using var httpLogin = new HttpClient();
+//var loginRespons = await httpLogin.PostAsJsonAsync(" Här skriver du din applicationUrl", loginData);
+//return Ok("User registered successfully.");

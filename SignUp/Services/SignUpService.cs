@@ -1,33 +1,35 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using SignUp.Models;
 
-namespace SignUp.Services;
-
-public class SignUpService(UserManager<IdentityUser> userManager)
+namespace SignUp.Services
 {
-    private readonly UserManager<IdentityUser> _userManager = userManager;
-
-
-    public async Task<ProfileRegistrationForm> RegisterUserAsync(FormData form
-        )
+    public class SignUpService(UserManager<IdentityUser> userManager)
     {
-        var user = new IdentityUser
+        private readonly UserManager<IdentityUser> _userManager = userManager;
+
+        public async Task<ProfileRegistrationForm?> RegisterUserAsync(FormData form)
         {
-            UserName = form.Email,
-            Email = form.Email,
+            var user = new IdentityUser
+            {
+                UserName = form.Email,
+                Email = form.Email
+            };
 
-        };
-        var result = await _userManager.CreateAsync(user, form.Password);
+            var result = await _userManager.CreateAsync(user, form.Password);
 
+            if (!result.Succeeded)
+            {
+                // Logga eller kasta ett specifikt fel här om du vill
+                return null;
+            }
 
-        return new ProfileRegistrationForm()
-        {
-            UserId = user.Id,
-            FirstName = form.FirstName,
-            LastName = form.LastName,
-            PhoneNumber = form.PhoneNumber
-        };
+            return new ProfileRegistrationForm
+            {
+                UserId = user.Id,
+                FirstName = form.FirstName,
+                LastName = form.LastName,
+                PhoneNumber = form.PhoneNumber
+            };
+        }
     }
-
-   
 }
